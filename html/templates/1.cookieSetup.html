@@ -1,0 +1,68 @@
+{{template "head" .}}
+<script src="https://unpkg.com/htmx.org@1.9.5" integrity="sha384-xcuj3WpfgjlKF+FXhSQFQ0ZNr39ln+hwjN3npfM9VBnUskLolQAcN80McRIVOPuO" crossorigin="anonymous"></script>
+{{template "body" .}}
+{{template "content" .}}
+
+<h1>Enregistrement de Cookie</h1>
+
+<section id="infos">
+    <h3>Instructions</h3>
+    
+    <p>
+        Avant de renseigner l'identifiant de la feuille dans le formulaire 
+        ci-dessous, s'assurer d'avoir <strong>partagé</strong> cette feuille Google Sheets, en mode <strong>Éditeur</strong>, 
+        à l'adresse : <mark>{{.ClientEmail}}</mark>.
+    </p>
+    <details>
+        <summary>Partage Google Sheets</summary>
+        <ol>
+            <li>Ouvrez le fichier que vous voulez partager (dont vous êtes le propriétaire ou que vous êtes autorisé à modifier).</li>
+            <li>Cliquez sur Partager.</li>
+            <li>Saisissez les adresses e-mail ou les groupes avec lesquels vous souhaitez partager le fichier.</li>
+            <li>Choisissez le type d'accès que vous souhaitez accorder aux utilisateurs : Éditeur.</li>
+            <li>Cliquez sur Envoyer.</li>
+        </ol>
+        <a target="_blank" href="https://support.google.com/docs/answer/9331169?hl=fr#6.1">Documentation Google</a>
+    </details>
+    <p>
+        Ce formulaire va ensuite permettre à l'application d'accéder à cette feuille 
+        et également d'enregistrer l'identifiant de cette feuille dans un <strong><u>Cookie</u></strong> lié 
+        à ce navigateur web.
+    </p>
+    <p id="hx-swap-oob1">Cookie déjà enregistré : {{.Cookie}}</p>
+</section>
+
+<section id="form">
+    <h3>Formulaire</h3>
+    <form hx-post="/cookie-setup"
+        hx-swap="outerHTML" hx-indicator="#spinner">
+        
+        <!-- Text -->
+        <label for="sheetId">Feuille</label>
+        <input type="text" id="sheetId" name="sheetId" placeholder="Identifiant de la feuille Google Sheets" required />
+
+        <!-- Select -->
+        <label for="cookieDuration">Durée de conservation du cookie (mini 1 heure, maxi 1 an)</label>
+        <select id="cookieDuration" name="cookieDuration" required>
+            <option value="3600" selected>1 heure</option>
+            <option value="86400">1 jour</option>
+            <option value="604800">1 semaine</option>
+            <option value="2592000">1 mois</option>
+            <option value="31536000">1 an</option>
+        </select>
+
+        <!-- Buttons -->
+        <button type="submit" value="Submit">
+            <span id="spinner" class="htmx-indicator" aria-busy="true"></span>
+            Envoyer
+        </button>
+    </form>
+</section>
+
+<p>
+    <a href="/create-tab">Etape suivante</a>: 
+    générer un onglet Google Sheets depuis 
+    cette application.
+</p>
+
+{{template "footer" .}}
