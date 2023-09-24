@@ -46,3 +46,14 @@ You need to make a [Google Service Account](https://developers.google.com/worksp
 
     docker run --detach -e type -e project_id -e private_key_id -e private_key -e client_email -e client_id -e auth_uri -e token_uri -e auth_provider_x509_cert_url -e client_x509_cert_url -e universe_domain --publish 127.0.0.1:8082:8082 imageIdJustBuilt
     ```
+
+## TODO
+- Améliorer page Insert Rows
+- Ajout onglet de paramétrage dans Gsheets.
+    - variable sur la liste des catégories
+- Voir utilité GET Sheets
+
+
+## Changelog
+- 2023-09-24 : add read all gsheet, start to use params in a new gsheet.
+- 2023-09-13 : initialize project

@@ -8,15 +8,16 @@ import (
     "strconv"
     "html/template"
     "os"
+    // "encoding/json"
 
     "example.com/sheets"
 
     "github.com/gin-gonic/gin"
 )
 
-// todo.html
-func todo(c *gin.Context) {
-    c.HTML(http.StatusOK, "0.todo.html", "")
+// index.html
+func index(c *gin.Context) {
+    c.HTML(http.StatusOK, "0.index.html", "")
 }
 
 // GET cookie
@@ -75,6 +76,48 @@ func getsheets(c *gin.Context) {
     })
 }
 
+type ParamStruct struct {
+	Param string `json:"param"`
+	Valeur string `json:"valeur"`
+	Info string `json:"info"`
+}
+// type ParamStruct struct {
+// 	Param struct {
+// 		Valeur string `json:"valeur"`
+// 		Info string `json:"info"`
+// 	} `json:"param"`
+// }
+// batchget.html
+func batchget(c *gin.Context) {
+    cookieSheetsId, err := c.Cookie("sheetsId")
+    if err != nil {
+        cookieSheetsId = "Aucun"
+        c.HTML(http.StatusOK, "getsheets.html", gin.H{
+            "info": "Aucun Google Sheets ID trouvé, créer un cookie avec cette information en suivant le lien ci-dessous.",
+        })
+        return
+    }
+    values := sheets.BatchGetSheets(cookieSheetsId, "param")
+    // var paramHead, categories ParamStruct
+    m := make(map[string]string)
+    params := make([]ParamStruct, 2)
+    i := 0
+    for _, param := range values {
+        params[i].Param = param[0]
+        params[i].Valeur = param[1]
+        params[i].Info = param[2]
+        m[param[0]] = param[1]
+        i += 1
+    }
+	// json.Unmarshal([][]byte(values), &params)
+    c.HTML(http.StatusOK, "batchget.html", gin.H{
+        "info": params,
+        "categories": strings.Split(params[1].Valeur, ","),
+        "categoriesMap": strings.Split(m["Categories"], ","),
+        "map": m,
+    })
+}
+
 // GET create tab.html
 func getcreatetab(c *gin.Context) {
     cookieSheetsId, err := c.Cookie("sheetsId")
@@ -91,15 +134,30 @@ func getcreatetab(c *gin.Context) {
     var colValues []string
     colValues = append(colValues, "Date", "Désignation", "Catégorie", "Prix")
 
-    var infoCreation string
+    var infoCreationData, infoCreationParam string
     respStatus := sheets.CreateNewTab(cookieSheetsId, tabName, rowC, colC)
     if respStatus == "200 OK"{
         sheets.InsertRows(cookieSheetsId, colValues, tabName)
-        infoCreation = "Onglet 'Data' créé."
-    } else { infoCreation = "Onglet 'Data' déjà existant." }
+        infoCreationData = "Onglet 'Data' créé."
+    } else { infoCreationData = "Onglet 'Data' déjà existant." }
+
+    tabName = "param"
+    rowC = 1
+    colC = 3 
+    respStatus = sheets.CreateNewTab(cookieSheetsId, tabName, rowC, colC)
+    if respStatus == "200 OK"{
+        colValues = nil
+        colValues = append(colValues, "Param", "Valeur", "Info")
+        sheets.InsertRows(cookieSheetsId, colValues, tabName)
+        colValues = nil
+        colValues = append(colValues, "Categories", "Supermarché,Restaurant,Loisir,Véhicule", "Inscrire la liste des catégories souhaitées, l'ordre est repris.\nSéparer les noms des champs par des virgules sans espaces.")
+        sheets.InsertRows(cookieSheetsId, colValues, tabName)
+        infoCreationParam = "Onglet 'Param' créé."
+    } else { infoCreationParam = "Onglet 'Param' déjà existant." }
     c.HTML(http.StatusOK, "2.createtab.html", gin.H{
         "info": "Google Sheets ID trouvé: "+cookieSheetsId,
-        "infoCreation": infoCreation,
+        "infoCreationData": infoCreationData,
+        "infoCreationParam": infoCreationParam,
     })
 }
 
@@ -169,8 +227,9 @@ func main() {
     router.StaticFile("/favicon.png", "./img/favicon.png") // 32x32
     router.Static("/img", "./img")
 
-    router.GET("/", todo)
+    router.GET("/", index)
     router.GET("/getsheets", getsheets)
+    router.GET("/batchget", batchget)
 
     router.GET("/cookie-setup", getCookieSetup)
     router.POST("/cookie-setup", postCookieSetup)

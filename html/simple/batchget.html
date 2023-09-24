@@ -1,0 +1,22 @@
+{{template "head" .}}
+{{template "body" .}}
+{{template "content" .}}
+<h1>BatchGet!</h1>
+<p>Params: {{.info}}</p>
+<p>Categ: {{.categories}}</p>
+<h3>categories</h3>
+<ol>
+    {{range $element := .categories}}
+        <li>{{$element}}</li>
+    {{end}}
+</ol>
+<p>map: {{.map}}</p>
+<h3>categoriesMap</h3>
+<ol>
+    {{range $element := .categoriesMap}}
+        <li>{{$element}}</li>
+    {{end}}
+</ol>
+
+{{template "footer" .}}
+

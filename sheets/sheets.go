@@ -2,7 +2,7 @@ package sheets
 
 import (
 	// "fmt"
-	// "io"
+	"io"
 	"encoding/json"
 	"net/http"
 	"log"
@@ -80,4 +80,44 @@ func CreateNewTab(sheetID string, tabName string, rowC int, colC int) string {
     // fmt.Println("response Body:", string(body))
 	// fmt.Println("response Status:", resp.Status) // 400 Bad Request
 	return resp.Status
+}
+
+type BatchGet struct {
+	SpreadsheetID string `json:"spreadsheetId"`
+	ValueRanges   []struct {
+		Range          string     `json:"range"`
+		MajorDimension string     `json:"majorDimension"`
+		Values         [][]string `json:"values"`
+	} `json:"valueRanges"`
+}
+// batch GET
+func BatchGetSheets(sheetID string, tab string) [][]string {
+	conf := GoogleAuth()
+	client := conf.Client(oauth2.NoContext)
+
+	url := "https://sheets.googleapis.com/v4/spreadsheets/" + sheetID + "/values:batchGet?ranges=" + tab + "!A1%3AZZ999999"
+  
+    req, err := http.NewRequest(http.MethodGet, url, nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    resp, err := client.Do(req)
+    if err != nil {
+        log.Fatal(err)
+    }
+	defer resp.Body.Close()
+
+    bytesR, err := io.ReadAll(resp.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // fmt.Println(string(bytesR))
+
+	var result BatchGet
+	json.Unmarshal(bytesR, &result)
+	// fmt.Println(result)
+	// fmt.Println("-------0\n")
+	// fmt.Println(result.ValueRanges[0].Values)
+	return result.ValueRanges[0].Values
 }
